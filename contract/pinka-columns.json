@@ -1,0 +1,1399 @@
+{
+  "captured_at": "2026-11-01T19:38:04Z",
+  "schema": "pinka_finance",
+  "tables": {
+    "campaign_stats": [
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "total_raised_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "contribution_count",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "contributor_count",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "last_contribution_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "campaign_subjects": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "subject_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "subject_ref",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "campaign_tiers": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "kind",
+        "type": "tier_kind",
+        "nullable": false
+      },
+      {
+        "name": "price_cents",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "inventory_total",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "inventory_claimed",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "unit",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "sort",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "imenska",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "sale_start",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "sale_end",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ],
+    "campaigns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "account_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "slug",
+        "type": "citext",
+        "nullable": false
+      },
+      {
+        "name": "type",
+        "type": "campaign_type",
+        "nullable": false
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "subject_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "subject_ref",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "goal_cents",
+        "type": "int8",
+        "nullable": true
+      },
+      {
+        "name": "min_contribution_cents",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "currency",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "destination_address",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "chain",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "safe_deployed_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "state",
+        "type": "campaign_state",
+        "nullable": false
+      },
+      {
+        "name": "visibility",
+        "type": "campaign_visibility",
+        "nullable": false
+      },
+      {
+        "name": "cover_image_url",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "starts_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "ends_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "metadata",
+        "type": "jsonb",
+        "nullable": false
+      },
+      {
+        "name": "deleted_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "youtube_channel_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "recurrence",
+        "type": "recurrence",
+        "nullable": false
+      },
+      {
+        "name": "recurrence_anchor_day",
+        "type": "int2",
+        "nullable": true
+      },
+      {
+        "name": "latitude",
+        "type": "float8",
+        "nullable": true
+      },
+      {
+        "name": "longitude",
+        "type": "float8",
+        "nullable": true
+      },
+      {
+        "name": "location_name",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "contribution_events": [
+      {
+        "name": "id",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "contribution_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "event_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "payload",
+        "type": "jsonb",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "contributions": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "tier_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "contributor_account_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "amount_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "amount_received_cents",
+        "type": "int8",
+        "nullable": true
+      },
+      {
+        "name": "currency",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "quantity",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "state",
+        "type": "contribution_state",
+        "nullable": false
+      },
+      {
+        "name": "payment_intent_sid",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "monerium_order_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "forward_tx_hash",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "destination_address",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "anonymous",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "display_name",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "paid_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "onchain_from",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "onchain_log_index",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "link_preview",
+        "type": "jsonb",
+        "nullable": true
+      },
+      {
+        "name": "message_hidden",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "contributor_verified",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "bank_verified",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "identity_double_verified",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "payer_iban_hash",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "display_name_verified",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "holders",
+        "type": "jsonb",
+        "nullable": true
+      },
+      {
+        "name": "reserved",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "reserve_expires_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "declared_payer_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "desired_slot_keys",
+        "type": "_text",
+        "nullable": true
+      },
+      {
+        "name": "slot_unassigned",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "payment_rail",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "external_payment_ref",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "buyer_email",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "is_sponsor",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "link_url",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "logo_path",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "buyer_company",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "buyer_oib",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "buyer_vat_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "buyer_address",
+        "type": "jsonb",
+        "nullable": true
+      },
+      {
+        "name": "buyer_reference",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "terms_accepted_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "underpaid",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "owner_notified_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "owner_notify_attempts",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "sold_slots",
+        "type": "jsonb",
+        "nullable": true
+      },
+      {
+        "name": "invoice_state",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "invoice_racun_id",
+        "type": "int8",
+        "nullable": true
+      },
+      {
+        "name": "invoice_number",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "invoice_attempts",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "invoice_locked_until",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "invoice_next_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "invoice_last_error",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "invoice_updated_at",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ],
+    "events": [
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "event_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "venue_name",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "venue_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "venue_city",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "starts_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "ends_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "timezone",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "description_hr",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "description_en",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "cover_image_url",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "organizer_name",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "organizer_email",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "organizer_web",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "guest_rate_hits": [
+      {
+        "name": "key",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "window_start",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "hits",
+        "type": "int4",
+        "nullable": false
+      }
+    ],
+    "organizer_allowlist": [
+      {
+        "name": "account_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "organizer_payment_rails": [
+      {
+        "name": "account_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "stripe_account_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "stripe_charges_enabled",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "stripe_payouts_enabled",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "invoice_provider",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "invoice_config",
+        "type": "jsonb",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "organizer_records": [
+      {
+        "name": "account_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "legal_name",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "oib",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "address_line",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "city",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "postal_code",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "country_code",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "contact_email",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "financial_identifier_type",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "financial_identifier",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "payouts": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "amount_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "destination",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "state",
+        "type": "payout_state",
+        "nullable": false
+      },
+      {
+        "name": "tx_hash",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "monerium_redeem_order_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "requested_by",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "slot_maps": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "slot_map_kind",
+        "nullable": false
+      },
+      {
+        "name": "width",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "height",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "conflict_policy",
+        "type": "slot_conflict_policy",
+        "nullable": false
+      },
+      {
+        "name": "hold_ttl_seconds",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "max_holds_per_session",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "slot_zones": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "map_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "zone_index",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "price_cents",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "label_key",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "run_days",
+        "type": "int2",
+        "nullable": true
+      }
+    ],
+    "slots": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "map_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "zone_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "slot_key",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "label",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "pos_x",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "pos_y",
+        "type": "int2",
+        "nullable": false
+      },
+      {
+        "name": "token_id",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "state",
+        "type": "slot_state",
+        "nullable": false
+      },
+      {
+        "name": "contribution_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "holder_account_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "holder_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "price_cents",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "hold_session_key",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "hold_expires_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "onchain_token_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "onchain_chain_id",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "token_uri",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "mint_tx_hash",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "minted_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "relocated_from_slot_key",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "youtube_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "start_sec",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "end_sec",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "live_from",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "live_until",
+        "type": "timestamptz",
+        "nullable": true
+      }
+    ],
+    "subscriptions": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "payer_iban_hash",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "contributor_account_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "display_name",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "subscription_status",
+        "nullable": false
+      },
+      {
+        "name": "cancelled_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "cadence",
+        "type": "subscription_cadence",
+        "nullable": false
+      },
+      {
+        "name": "interval_days",
+        "type": "int4",
+        "nullable": true
+      },
+      {
+        "name": "contribution_count",
+        "type": "int4",
+        "nullable": false
+      },
+      {
+        "name": "total_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "first_contribution_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "last_contribution_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "last_amount_cents",
+        "type": "int8",
+        "nullable": true
+      },
+      {
+        "name": "next_expected_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "tickets": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "contribution_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "tier_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "serial",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "holder_name",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "holder_email",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "qr_token_hash",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "qr_token_once",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "state",
+        "type": "ticket_state",
+        "nullable": false
+      },
+      {
+        "name": "checked_in_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "checked_in_by",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "slot_id",
+        "type": "uuid",
+        "nullable": true
+      }
+    ],
+    "token_positions": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "contribution_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "holder_account_id",
+        "type": "uuid",
+        "nullable": true
+      },
+      {
+        "name": "units",
+        "type": "numeric",
+        "nullable": false
+      },
+      {
+        "name": "onchain_token_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "onchain_token_id",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "attestation_uid",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "position_status",
+        "nullable": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ],
+    "yield_positions": [
+      {
+        "name": "campaign_id",
+        "type": "uuid",
+        "nullable": false
+      },
+      {
+        "name": "protocol",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "asset",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "principal_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "last_balance_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "accrued_yield_cents",
+        "type": "int8",
+        "nullable": false
+      },
+      {
+        "name": "atoken_address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "last_synced_at",
+        "type": "timestamptz",
+        "nullable": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "nullable": false
+      }
+    ]
+  }
+}
