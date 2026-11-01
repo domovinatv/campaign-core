@@ -37,7 +37,7 @@ flowchart LR
 ## Upotreba
 
 ```bash
-npm install github:domovinatv/campaign-core#v0.1.0
+npm install github:domovinatv/campaign-core#v0.1.1
 ```
 
 ```ts
