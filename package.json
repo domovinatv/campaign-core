@@ -1,6 +1,6 @@
 {
   "name": "@domovina/campaign-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Jezgra kampanje za P2P zajedničko financiranje: tipovi, opis tablica (D1 ↔ pinka_finance), invarijante",
   "license": "MIT",
   "type": "module",
@@ -8,12 +8,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "contract"],
+  "files": [
+    "dist",
+    "contract"
+  ],
   "sideEffects": false,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build",
