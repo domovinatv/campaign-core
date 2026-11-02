@@ -1,0 +1,605 @@
+// GENERIRANO iz src/contract.ts i src/dbml.ts (npm run dbml). Ne uređuj ručno: test ruši build kad se razilazi.
+// Prikaz: https://stepanic.github.io/open-diagram/?url=https://github.com/domovinatv/campaign-core/blob/main/schema.dbml
+
+Project campaign_core {
+  database_type: 'SQLite'
+  Note: '''
+    # campaign-core: jezgra kampanje na Cloudflare D1
+
+    Jedna jezgra za svaku vrstu P2P kampanje (dar, članski ulog, nagrada, ulaznice).
+    Ono što je specifično za vrstu projekta živi u vertikali, tablici 1:1 uz kampanju:
+    prva je elektrana (`campaign_energy`), druga energetska zajednica.
+
+    - Rail (pay.domovina.ai) je izvor istine za novac; doprinosi ovdje su projekcija.
+    - `pinka:` u bilješci stupca je isti podatak u pinka_finance (domovina.ai).
+    - Odluke i obrazloženje: energy.domovina.ai `docs/19`.
+  '''
+}
+
+// ==============================================================================
+// Zatvoreni skupovi (src/sets.ts). U D1: TEXT + CHECK (x IN (…)).
+// ==============================================================================
+
+Enum campaign_types {
+  donation [note: 'dar bez protučinidbe']
+  membership [note: 'članski ulog u zajednicu (energy: community)']
+  reward [note: 'doprinos s nagradom (pinka: crowdfund)']
+  tickets [note: 'ulaznice']
+}
+
+Enum verticals {
+  none [note: 'samo jezgra']
+  energy [note: 'uz red u campaign_energy']
+  community [note: 'uz red u campaign_community']
+}
+
+Enum campaign_states {
+  draft [note: 'uređuje se, nije javna']
+  review [note: 'čeka provjeru (pinka je nema: prikazuje se kao draft)']
+  active [note: 'prima doprinose']
+  funded [note: 'cilj postignut; isporuka teče u timeline_steps']
+  closed [note: 'završena']
+  cancelled [note: 'otkazana prije cilja']
+}
+
+Enum visibilities {
+  private [note: 'samo organizator']
+  unlisted [note: 'tko ima poveznicu']
+  public [note: 'u popisima']
+}
+
+Enum campaign_modes {
+  integrated [note: 'Mod 1: platforma je izvođač i nositelj']
+  byo [note: 'Mod 2: klijentov IBAN i Safe, platforma ne drži ključ']
+}
+
+Enum campaign_rails {
+  platform [note: 'naš Monerium IBAN i Safe']
+  client [note: 'klijentov Monerium IBAN i Safe']
+}
+
+Enum recurrences {
+  none
+  monthly
+  quarterly
+  yearly
+}
+
+Enum holder_types {
+  association
+  cooperative
+  municipality
+  company
+  person
+  community
+}
+
+Enum tier_kinds {
+  reward
+  ticket
+  none
+}
+
+Enum payout_states {
+  requested [note: 'zatraženo']
+  approved [note: 'odobreno']
+  submitted [note: 'prijedlog u Safeu, skuplja potpise']
+  confirmed [note: 'izvršeno na lancu']
+  failed [note: 'nije izvršeno']
+}
+
+Enum document_kinds {
+  site_right
+  statute
+  contractor_quote [note: 'ponuda izvođača (energy: installer_quote)']
+  grid_decision [note: 'rješenje HEP-ODS-a']
+  contract
+  other
+}
+
+Enum contribution_states {
+  pending [note: 'intent otvoren, novac nije stigao']
+  paid [note: 'stiglo na Safe']
+  failed [note: 'nije prošlo']
+  refunded [note: 'vraćeno uplatitelju']
+  expired [note: 'intent istekao bez uplate']
+}
+
+Enum payment_rails {
+  sepa [note: 'SEPA preko Moneriuma (EURe na Safe)']
+  onchain [note: 'izravno na Safe']
+  card [note: 'kartica']
+}
+
+Enum subscription_statuses {
+  active
+  cancelled
+}
+
+Enum site_rights {
+  owner
+  co_owner_consent [note: 'suglasnost suvlasnika']
+  building_right [note: 'pravo građenja']
+  lease [note: 'zakup']
+}
+
+Enum community_legal_forms {
+  association
+  cooperative
+  not_yet_registered
+}
+
+Enum community_registration_states {
+  idea
+  preparing
+  filed
+  registered
+}
+
+Enum member_roles {
+  member
+  board
+  signer [note: 'drži ključ Safea']
+}
+
+// ==============================================================================
+// kampanja: Što se financira, tko to vodi i gdje stoji novac (Safe).
+// ==============================================================================
+
+Table campaigns [headercolor: #1f6f4a] {
+  id text [pk, note: 'pinka: campaigns.id']
+  tenant_id text [not null, note: 'čije šine; dijeljenje baze ide po tenantu · → pay.domovina.ai tenants.id']
+  organizer_id text [not null]
+  slug text [not null, note: 'jedinstven po tenantu; nepromjenjiv nakon active · pinka: campaigns.slug']
+  type campaign_types [not null, note: 'vrsta kampanje; tokenization i realestate ne postoje · pinka: campaigns.type']
+  vertical verticals [not null, note: 'koja tablica 1:1 nosi specifično']
+  title text [not null, note: 'pinka: campaigns.title']
+  description text [note: 'pinka: campaigns.description']
+  goal_cents integer [note: 'centi · pinka: campaigns.goal_cents']
+  min_contribution_cents integer [note: 'centi · pinka: campaigns.min_contribution_cents']
+  max_contributors integer [note: 'gornja granica broja doprinositelja (trošak po članu)']
+  currency text [not null, note: 'ISO 4217 · pinka: campaigns.currency']
+  state campaign_states [not null, note: 'os prikupljanja; isporuka se čita iz timeline_steps · pinka: campaigns.state']
+  visibility visibilities [not null, note: 'pinka: campaigns.visibility']
+  mode campaign_modes [not null, note: 'integrated = Mod 1 (mi izvodimo), byo = Mod 2 (klijentove šine)']
+  rails campaign_rails [not null, note: 'čiji su Monerium IBAN i Safe']
+  starts_at integer [note: 'unix ms · pinka: campaigns.starts_at']
+  ends_at integer [note: 'unix ms · pinka: campaigns.ends_at']
+  recurrence recurrences [not null, note: 'pinka: campaigns.recurrence']
+  cover_image_url text [note: 'pinka: campaigns.cover_image_url']
+  lat real [note: 'pinka: campaigns.latitude']
+  lng real [note: 'pinka: campaigns.longitude']
+  location_name text [note: 'pinka: campaigns.location_name']
+  surplus_intent text [note: 'izjava o namjeni viška iznad cilja']
+  demo integer [not null, check: `demo IN (0, 1)`, note: 'maketa se deklarira kao maketa · boolean']
+  metadata text [not null, check: `json_valid(metadata)`, note: 'slobodna proširenja; ništa o čemu ovisi novac · JSON · pinka: campaigns.metadata']
+  created_by text [note: 'pinka: campaigns.account_id']
+  created_at integer [not null, note: 'unix ms · pinka: campaigns.created_at']
+  updated_at integer [not null, note: 'unix ms · pinka: campaigns.updated_at']
+  deleted_at integer [note: 'unix ms · pinka: campaigns.deleted_at']
+
+  indexes {
+    (tenant_id, slug) [unique, note: 'jedinstveno']
+  }
+
+  Note: 'Jezgra: jedan red za svaku kampanju bilo koje vrste. Što je specifično za vertikalu (elektrana, zajednica) živi u tablici 1:1 uz nju.'
+}
+
+Table organizers [headercolor: #1f6f4a] {
+  id text [pk, note: 'pinka: organizer_records.account_id']
+  tenant_id text [not null, note: '→ pay.domovina.ai tenants.id']
+  holder_type holder_types [not null]
+  legal_name text [not null, note: 'pinka: organizer_records.legal_name']
+  oib text [note: 'za pravne osobe javan; prikazuje se, ne pretražuje · pinka: organizer_records.oib']
+  address_line text [note: 'pinka: organizer_records.address_line']
+  city text [note: 'pinka: organizer_records.city']
+  postal_code text [note: 'pinka: organizer_records.postal_code']
+  country_code text [not null, note: 'pinka: organizer_records.country_code']
+  contact_email text [note: 'pinka: organizer_records.contact_email']
+  is_platform integer [not null, check: `is_platform IN (0, 1)`, note: 'Mod 1: objava sukoba interesa obavezna · boolean']
+  created_at integer [not null, note: 'unix ms · pinka: organizer_records.created_at']
+  updated_at integer [not null, note: 'unix ms · pinka: organizer_records.updated_at']
+
+  Note: 'Pravni nositelj kampanje. is_platform = Mod 1 (mi smo izvođač), tada je objava sukoba interesa obavezna.'
+}
+
+Table campaign_safes [headercolor: #1f6f4a] {
+  campaign_id text [pk, note: 'pinka: campaigns.id']
+  address text [not null, note: '→ Safe na lancu chain_id · pinka: campaigns.destination_address']
+  chain_id integer [not null, note: '100 Gnosis, 10200 Chiado · pinka: campaigns.chain']
+  threshold integer [not null, note: 'M iz M-od-N']
+  owners text [not null, check: `json_valid(owners)`, note: 'JSON']
+  platform_signer_count integer [not null, note: 'koliko ključeva drži platforma; 2 × ovo ≤ threshold']
+  deployed_at integer [note: 'unix ms · pinka: campaigns.safe_deployed_at']
+  verified_at integer [note: 'zadnja provjera vlasnika i praga s lanca · unix ms']
+
+  Note: 'Safe kampanje, 1:1. Novac stoji ovdje, ne kod platforme. Uplate se primaju tek kad je verified_at postavljen i invarijanta sukoba interesa drži.'
+}
+
+Table campaign_subjects [headercolor: #1f6f4a] {
+  id text [pk, note: 'pinka: campaign_subjects.id']
+  campaign_id text [not null, note: 'pinka: campaign_subjects.campaign_id']
+  subject_type text [not null, note: 'pinka: campaign_subjects.subject_type']
+  subject_ref text [not null, note: 'pinka: campaign_subjects.subject_ref']
+  created_at integer [not null, note: 'unix ms · pinka: campaign_subjects.created_at']
+
+  indexes {
+    (campaign_id, subject_type, subject_ref) [unique, note: 'jedinstveno']
+  }
+
+  Note: 'Na što se kampanja odnosi, polimorfno: plant:<id>, podcast_channel:<id>, external:pinka:<id>.'
+}
+
+Table campaign_tiers [headercolor: #1f6f4a] {
+  id text [pk, note: 'pinka: campaign_tiers.id']
+  campaign_id text [not null, note: 'pinka: campaign_tiers.campaign_id']
+  title text [not null, note: 'pinka: campaign_tiers.title']
+  description text [note: 'pinka: campaign_tiers.description']
+  kind tier_kinds [not null, note: 'pinka: campaign_tiers.kind']
+  price_cents integer [note: 'centi · pinka: campaign_tiers.price_cents']
+  inventory_total integer [note: 'pinka: campaign_tiers.inventory_total']
+  inventory_claimed integer [not null, note: 'povećava ga upis doprinosa · pinka: campaign_tiers.inventory_claimed']
+  unit text [note: 'pinka: campaign_tiers.unit']
+  sort integer [not null, note: 'pinka: campaign_tiers.sort']
+  sale_start integer [note: 'pinka: campaign_tiers.sale_start']
+  sale_end integer [note: 'pinka: campaign_tiers.sale_end']
+  metadata text [not null, check: `json_valid(metadata)`, note: 'JSON · pinka: campaign_tiers.metadata']
+  created_at integer [not null, note: 'unix ms · pinka: campaign_tiers.created_at']
+  updated_at integer [not null, note: 'unix ms · pinka: campaign_tiers.updated_at']
+
+  Note: 'Paketi doprinosa (nagrada, ulaznica ili bez). Nikad tranša tokena: token_tranche je izvan pravne granice.'
+}
+
+// ==============================================================================
+// isporuka: Što se obećalo i što je izvedeno: javna razrada troška, plan i izvedba isplate, tijek, dokumenti.
+// ==============================================================================
+
+Table budget_lines [headercolor: #a8660b] {
+  id text [pk]
+  campaign_id text [not null]
+  sort integer [not null]
+  label text [not null]
+  amount_cents integer [not null, note: 'centi']
+  is_contractor_margin integer [not null, check: `is_contractor_margin IN (0, 1)`, note: 'naša marža kao izvođača · boolean']
+
+  Note: 'Razrada troška, javna PRIJE uplate. Marža izvođača je zaseban red (is_contractor_margin), da „0 %” nikad ne stoji samo.'
+}
+
+Table milestones [headercolor: #a8660b] {
+  id text [pk]
+  campaign_id text [not null]
+  key text [not null]
+  label text [not null]
+  amount_cents integer [not null, note: 'centi']
+  sort integer [not null]
+
+  indexes {
+    (campaign_id, key) [unique, note: 'jedinstveno']
+  }
+
+  Note: 'Plan isplate po situacijama. Izvedba je payouts.'
+}
+
+Table payouts [headercolor: #a8660b] {
+  id text [pk, note: 'pinka: payouts.id']
+  campaign_id text [not null, note: 'pinka: payouts.campaign_id']
+  milestone_id text
+  amount_cents integer [not null, note: 'centi · pinka: payouts.amount_cents']
+  destination text [not null, note: 'adresa primatelja isplate · pinka: payouts.destination']
+  state payout_states [not null, note: 'pinka: payouts.state']
+  safe_tx_hash text [note: 'prijedlog u Safeu, prije potpisa']
+  tx_hash text [note: 'pinka: payouts.tx_hash']
+  requested_by text [note: 'pinka: payouts.requested_by']
+  created_at integer [not null, note: 'unix ms · pinka: payouts.created_at']
+  updated_at integer [not null, note: 'unix ms · pinka: payouts.updated_at']
+
+  Note: 'Isplata iz Safea: prijedlog (safe_tx_hash) → potpisi → transakcija (tx_hash).'
+}
+
+Table timeline_steps [headercolor: #a8660b] {
+  campaign_id text [not null]
+  key text [not null, note: 'npr. submitted … connected za energy']
+  sort integer [not null]
+  planned integer
+  actual integer
+  note text [note: 'objašnjenje pomaka, stoji na stranici']
+
+  indexes {
+    (campaign_id, key) [pk]
+  }
+
+  Note: 'Tijek isporuke: svaki korak ima plan i ostvarenje, da se kašnjenje vidi. Ključeve određuje vertikala.'
+}
+
+Table campaign_documents [headercolor: #a8660b] {
+  id text [pk]
+  campaign_id text [not null]
+  kind document_kinds [not null]
+  label text [not null, note: 'naziv iz izvora, ne prevodi se']
+  url text [note: 'NULL = nije priložen']
+  issued_at integer [note: 'unix ms']
+
+  Note: 'Dokazi uz kampanju. url = NULL znači da dokument nije priložen; nikad placeholder poveznica.'
+}
+
+// ==============================================================================
+// doprinosi: Projekcija raila (pay.domovina.ai) i lanca. Ovdje se ništa ne izmišlja; sve se može ponovo izgraditi.
+// ==============================================================================
+
+Table contributions [headercolor: #1d5fa8] {
+  id text [pk, note: 'pinka: contributions.id']
+  campaign_id text [not null, note: 'pinka: contributions.campaign_id']
+  tier_id text [note: 'pinka: contributions.tier_id']
+  quantity integer [not null, note: 'pinka: contributions.quantity']
+  amount_cents integer [not null, note: 'centi · pinka: contributions.amount_cents']
+  amount_received_cents integer [note: 'centi · pinka: contributions.amount_received_cents']
+  currency text [not null, note: 'pinka: contributions.currency']
+  state contribution_states [not null, note: 'pinka: contributions.state']
+  payment_rail payment_rails [not null, note: 'pinka: contributions.payment_rail']
+  payment_intent_sid text [note: 'idempotentni ključ s raila · → pay.domovina.ai payment_intents.sid · pinka: contributions.payment_intent_sid']
+  monerium_order_id text [note: 'idempotentni ključ SEPA naloga · pinka: contributions.monerium_order_id']
+  tx_hash text [note: 'idempotentno s log_index · pinka: contributions.forward_tx_hash']
+  log_index integer [note: 'pinka: contributions.onchain_log_index']
+  onchain_from text [note: 'pinka: contributions.onchain_from']
+  external_payment_ref text [note: 'pinka: contributions.external_payment_ref']
+  payer_iban_hash text [note: 'HMAC IBAN-a; sam IBAN se ne sprema · pinka: contributions.payer_iban_hash']
+  underpaid integer [not null, check: `underpaid IN (0, 1)`, note: 'stiglo manje od amount_cents · boolean · pinka: contributions.underpaid']
+  created_at integer [not null, note: 'unix ms · pinka: contributions.created_at']
+  paid_at integer [note: 'unix ms · pinka: contributions.paid_at']
+  updated_at integer [not null, note: 'unix ms · pinka: contributions.updated_at']
+
+  indexes {
+    payment_intent_sid [unique, note: 'djelomični: WHERE payment_intent_sid IS NOT NULL']
+    monerium_order_id [unique, note: 'djelomični: WHERE monerium_order_id IS NOT NULL']
+    (tx_hash, log_index) [unique, note: 'djelomični: WHERE log_index IS NOT NULL']
+    (payment_rail, external_payment_ref) [unique, note: 'djelomični: WHERE external_payment_ref IS NOT NULL']
+  }
+
+  Note: 'Knjiga doprinosa: projekcija raila (pay.domovina.ai) i lanca. Rail je izvor istine za novac; red se uvijek može ponovo izgraditi. Djelomični UNIQUE ključevi čine upis idempotentnim.'
+}
+
+Table contribution_events [headercolor: #1d5fa8] {
+  id integer [pk, note: 'rastući redni broj · pinka: contribution_events.id']
+  contribution_id text [not null, note: 'pinka: contribution_events.contribution_id']
+  campaign_id text [not null, note: 'pinka: contribution_events.campaign_id']
+  event_type text [not null, note: 'pinka: contribution_events.event_type']
+  payload text [not null, check: `json_valid(payload)`, note: 'JSON · pinka: contribution_events.payload']
+  created_at integer [not null, note: 'unix ms · pinka: contribution_events.created_at']
+
+  Note: 'Dnevnik doprinosa, samo dodavanje. Nikad UPDATE ni DELETE.'
+}
+
+Table contribution_profiles [headercolor: #1d5fa8] {
+  contribution_id text [pk, note: 'pinka: contributions.id']
+  anonymous integer [not null, check: `anonymous IN (0, 1)`, note: 'boolean · pinka: contributions.anonymous']
+  display_name text [note: 'pinka: contributions.display_name']
+  display_name_verified integer [not null, check: `display_name_verified IN (0, 1)`, note: 'ime potvrđeno s banke · boolean · pinka: contributions.display_name_verified']
+  message text [note: 'pinka: contributions.message']
+  message_hidden integer [not null, check: `message_hidden IN (0, 1)`, note: 'boolean · pinka: contributions.message_hidden']
+  link_url text [note: 'pinka: contributions.link_url']
+  bank_verified integer [not null, check: `bank_verified IN (0, 1)`, note: 'boolean · pinka: contributions.bank_verified']
+  updated_at integer [not null, note: 'unix ms · pinka: contributions.updated_at']
+
+  Note: 'Javni prikaz doprinosa, 1:1, odvojen od knjige: ime, poruka, anonimnost.'
+}
+
+Table campaign_stats [headercolor: #1d5fa8] {
+  campaign_id text [pk, note: 'pinka: campaign_stats.campaign_id']
+  raised_cents integer [not null, note: 'centi · pinka: campaign_stats.total_raised_cents']
+  contribution_count integer [not null, note: 'pinka: campaign_stats.contribution_count']
+  contributor_count integer [not null, note: 'pinka: campaign_stats.contributor_count']
+  last_contribution_at integer [note: 'unix ms · pinka: campaign_stats.last_contribution_at']
+  updated_at integer [not null, note: 'unix ms · pinka: campaign_stats.updated_at']
+
+  Note: 'Agregat 1:1, ažurira ga upis doprinosa, da javno čitanje ne zbraja po zahtjevu.'
+}
+
+Table subscriptions [headercolor: #1d5fa8] {
+  id text [pk, note: 'pinka: subscriptions.id']
+  campaign_id text [not null, note: 'pinka: subscriptions.campaign_id']
+  payer_iban_hash text [not null, note: 'HMAC IBAN-a · pinka: subscriptions.payer_iban_hash']
+  status subscription_statuses [not null, note: 'pinka: subscriptions.status']
+  interval_days integer [note: 'pinka: subscriptions.interval_days']
+  contribution_count integer [not null, note: 'pinka: subscriptions.contribution_count']
+  total_cents integer [not null, note: 'centi · pinka: subscriptions.total_cents']
+  first_contribution_at integer [note: 'unix ms · pinka: subscriptions.first_contribution_at']
+  last_contribution_at integer [note: 'unix ms · pinka: subscriptions.last_contribution_at']
+  next_expected_at integer [note: 'unix ms · pinka: subscriptions.next_expected_at']
+  cancelled_at integer [note: 'unix ms · pinka: subscriptions.cancelled_at']
+  created_at integer [not null, note: 'unix ms · pinka: subscriptions.created_at']
+  updated_at integer [not null, note: 'unix ms · pinka: subscriptions.updated_at']
+
+  Note: 'Ponavljajući doprinos istog uplatitelja (po HMAC-u IBAN-a).'
+}
+
+// ==============================================================================
+// vertikale: Tablice 1:1 uz kampanju koje jezgra ne poznaje. Nova vrsta projekta = nova vertikala, jezgra se ne dira.
+// ==============================================================================
+
+Table campaign_energy [headercolor: #7a45b8] {
+  campaign_id text [pk]
+  plant_id text [note: 'NULL dok nije upisana u registar · → registar elektrana (energy)']
+  power_kw real [not null, note: 'snaga u kWp']
+  connections integer [not null, note: 'broj HEP-ODS priključaka']
+  grid_status text
+  site_right site_rights [not null, note: 'pravo na lokaciju']
+  site_right_document_id text
+  gnosis_node integer [not null, check: `gnosis_node IN (0, 1)`, note: 'elektrana pogoni i Gnosis validator · boolean']
+  contractor text [note: 'tko gradi; kad je to platforma, objava sukoba interesa je trajna']
+
+  Note: 'Vertikala elektrana, 1:1 uz kampanju (vertical = energy).'
+}
+
+Table campaign_community [headercolor: #7a45b8] {
+  campaign_id text [pk]
+  legal_form community_legal_forms [not null]
+  registration_state community_registration_states [not null]
+  statute_document_id text
+
+  Note: 'Vertikala energetska zajednica, 1:1 uz kampanju (vertical = community).'
+}
+
+Table members [headercolor: #7a45b8] {
+  id text [pk]
+  campaign_id text [not null]
+  person_ref text [not null, note: 'osoba izvan ove baze']
+  role member_roles [not null]
+  share_basis_points integer [not null, note: 'udio u energiji i glasu, 10000 = 100 %; nikad u dobiti']
+  joined_at integer [not null, note: 'unix ms']
+
+  Note: 'Članovi zajednice. Udio je u proizvedenoj energiji i glasu, nikad u dobiti.'
+}
+
+// ==============================================================================
+// Veze. Boja = grupa tablice iz koje veza kreće. `-` = 1:1, `>` = mnogo prema jedan.
+// ==============================================================================
+
+Ref campaigns__organizer_id: campaigns.organizer_id > organizers.id [color: #1f6f4a]
+Ref campaign_safes__campaign_id: campaign_safes.campaign_id - campaigns.id [color: #1f6f4a]
+Ref campaign_subjects__campaign_id: campaign_subjects.campaign_id > campaigns.id [color: #1f6f4a]
+Ref campaign_tiers__campaign_id: campaign_tiers.campaign_id > campaigns.id [color: #1f6f4a]
+Ref budget_lines__campaign_id: budget_lines.campaign_id > campaigns.id [color: #a8660b]
+Ref milestones__campaign_id: milestones.campaign_id > campaigns.id [color: #a8660b]
+Ref payouts__campaign_id: payouts.campaign_id > campaigns.id [color: #a8660b]
+Ref payouts__milestone_id: payouts.milestone_id > milestones.id [color: #a8660b]
+Ref timeline_steps__campaign_id: timeline_steps.campaign_id > campaigns.id [color: #a8660b]
+Ref campaign_documents__campaign_id: campaign_documents.campaign_id > campaigns.id [color: #a8660b]
+Ref contributions__campaign_id: contributions.campaign_id > campaigns.id [color: #1d5fa8]
+Ref contributions__tier_id: contributions.tier_id > campaign_tiers.id [color: #1d5fa8]
+Ref contribution_events__contribution_id: contribution_events.contribution_id > contributions.id [color: #1d5fa8]
+Ref contribution_events__campaign_id: contribution_events.campaign_id > campaigns.id [color: #1d5fa8]
+Ref contribution_profiles__contribution_id: contribution_profiles.contribution_id - contributions.id [color: #1d5fa8]
+Ref campaign_stats__campaign_id: campaign_stats.campaign_id - campaigns.id [color: #1d5fa8]
+Ref subscriptions__campaign_id: subscriptions.campaign_id > campaigns.id [color: #1d5fa8]
+Ref campaign_energy__campaign_id: campaign_energy.campaign_id - campaigns.id [color: #7a45b8]
+Ref campaign_energy__site_right_document_id: campaign_energy.site_right_document_id > campaign_documents.id [color: #7a45b8]
+Ref campaign_community__campaign_id: campaign_community.campaign_id - campaigns.id [color: #7a45b8]
+Ref campaign_community__statute_document_id: campaign_community.statute_document_id > campaign_documents.id [color: #7a45b8]
+Ref members__campaign_id: members.campaign_id > campaigns.id [color: #7a45b8]
+
+// ==============================================================================
+// Grupe, bilješke na platnu i pogledi
+// ==============================================================================
+
+TableGroup kampanja [color: #1f6f4a] {
+  campaigns
+  organizers
+  campaign_safes
+  campaign_subjects
+  campaign_tiers
+  Note: 'Što se financira, tko to vodi i gdje stoji novac (Safe).'
+}
+
+TableGroup isporuka [color: #a8660b] {
+  budget_lines
+  milestones
+  payouts
+  timeline_steps
+  campaign_documents
+  Note: 'Što se obećalo i što je izvedeno: javna razrada troška, plan i izvedba isplate, tijek, dokumenti.'
+}
+
+TableGroup doprinosi [color: #1d5fa8] {
+  contributions
+  contribution_events
+  contribution_profiles
+  campaign_stats
+  subscriptions
+  Note: 'Projekcija raila (pay.domovina.ai) i lanca. Ovdje se ništa ne izmišlja; sve se može ponovo izgraditi.'
+}
+
+TableGroup vertikale [color: #7a45b8] {
+  campaign_energy
+  campaign_community
+  members
+  Note: 'Tablice 1:1 uz kampanju koje jezgra ne poznaje. Nova vrsta projekta = nova vertikala, jezgra se ne dira.'
+}
+
+Note kako_citati [color: #334155] {
+  '''
+  - boja zaglavlja i veze = grupa tablice iz koje veza kreće
+  - žuti kutić = stupac ima bilješku (prijeđi mišem)
+  - novac: INTEGER centi; vrijeme: INTEGER unix ms; ID: UUIDv7 kao TEXT
+  - enum je u D1 TEXT + CHECK (x IN (…))
+  - „pinka: t.s” = isti podatak u pinka_finance (Postgres, api.domovina.ai)
+  - „→ …” = vrijednost pokazuje izvan ove baze (rail, lanac, registar)
+  '''
+}
+
+Note tok_novca [color: #1d5fa8] {
+  '''
+  uplatitelj → Monerium IBAN → EURe na Safe kampanje
+  rail (pay.domovina.ai) vidi uplatu → webhook_outbox → Worker jezgre
+  → contributions (+ contribution_events) → campaign_stats
+  Isplata: milestones (plan) → payouts → prijedlog u Safeu → potpisi → tx_hash
+  Rail je izvor istine; ova baza je projekcija i može se ponovo izgraditi.
+  '''
+}
+
+Note sukob_interesa_mod1 [color: #a8660b] {
+  '''
+  Platforma je ujedno izvođač koji naplaćuje. Zato:
+  - 2 × campaign_safes.platform_signer_count ≤ threshold
+    (prag 3-od-5 → najviše jedan naš ključ)
+  - budget_lines je javan prije uplate, marža izvođača je zaseban red
+  - organizers.is_platform / campaign_energy.contractor → trajna objava
+  '''
+}
+
+Note pravna_granica [color: #b42318] {
+  '''
+  Ne postoji ni kao vrijednost: tokenization, realestate, token_tranche,
+  pozicije, prinos, udio u dobiti. Pinka ih ima; mapper ih odbija s razlogom.
+  members.share_basis_points = udio u energiji i glasu, nikad u dobiti.
+  Uplata se nikad ne opisuje kao povratna.
+  '''
+}
+
+Note vertikala [color: #7a45b8] {
+  '''
+  campaigns.vertical kaže koja tablica 1:1 nosi specifično.
+  campaign_id je ondje i primarni i strani ključ.
+  Koraci timeline_steps.key dolaze iz vertikale (energy: submitted → connected).
+  '''
+}
+
+DiagramView jezgra {
+  TableGroups {
+    kampanja
+    isporuka
+  }
+  Notes {
+    kako_citati
+    sukob_interesa_mod1
+  }
+}
+
+DiagramView novac {
+  TableGroups {
+    doprinosi
+  }
+  Tables {
+    campaigns
+    campaign_safes
+    campaign_tiers
+    milestones
+    payouts
+  }
+  Notes {
+    tok_novca
+  }
+}
+
+DiagramView vertikale {
+  TableGroups {
+    vertikale
+  }
+  Tables {
+    campaigns
+    campaign_documents
+  }
+  Notes {
+    vertikala
+    pravna_granica
+  }
+}

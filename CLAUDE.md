@@ -12,7 +12,9 @@ njegov plan (J1 paket, J2 D1 migracije, J4 Worker).
    razlogom, nikad ne prevodi tiho. Vidi energy `docs/03` §3, `docs/14` §2.4.
 2. **Tip i opis tablice se ne razilaze.** Svako polje u `src/types.ts` ima red u
    `src/contract.ts` (`TableSpec<T>` to provjerava kompilator). Novi stupac =
-   oba mjesta + D1 migracija (aditivno) + po potrebi `pinka` referenca.
+   oba mjesta + D1 migracija (aditivno) + po potrebi `pinka` referenca i `ref`
+   (strani ključ). Zatim `npm run dbml && npm run diagram`: `schema.dbml` mora biti
+   jednak izlazu `toDbml()` (test), a PNG u README-u se osvježava ručno.
 3. **Skupovi su zatvoreni.** U D1 su `CHECK`; promjena traži migraciju koja
    prepisuje tablicu. Novi član skupa ide odlukom u energy `docs/19` §6.
 4. **Rail je izvor istine za novac.** Knjiga doprinosa ovdje je projekcija i mora

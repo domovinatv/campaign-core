@@ -1,6 +1,6 @@
 {
   "name": "@domovina/campaign-core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Jezgra kampanje za P2P zajedničko financiranje: tipovi, opis tablica (D1 ↔ pinka_finance), invarijante",
   "license": "MIT",
   "type": "module",
@@ -26,9 +26,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "verify": "npm run typecheck && npm run test && npm run build",
-    "snapshot:pinka": "./scripts/snapshot-pinka.sh"
+    "snapshot:pinka": "./scripts/snapshot-pinka.sh",
+    "dbml": "npm run build && node scripts/write-dbml.mjs",
+    "diagram": "node scripts/render-diagram.mjs"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
     "typescript": "^5.9.3",
     "vitest": "^5.0.1"
   }
